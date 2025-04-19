@@ -108,14 +108,49 @@ void cache_optimized_transposition(Matrix &A, Matrix &B, Matrix &C, unsigned int
     }
 }
 
+// version 4
+// From https://en.algorithmica.org/hpc/external-memory/oblivious/
+void matmul(const float *a, const float *b, float *c, int n, int N)
+{
+    if (n <= 32) {
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < n; j++)
+                for (int k = 0; k < n; k++)
+                    c[i * N + j] += a[i * N + k] * b[k * N + j];
+    } else {
+        int k = n / 2;
+        matmul(a,     b,         c, k, N);
+        matmul(a + k, b + k * N, c, k, N);
+        matmul(a,     b + k,         c + k, k, N);
+        matmul(a + k, b + k * N + k, c + k, k, N);
+        matmul(a + k * N,     b,         c + k * N, k, N);
+        matmul(a + k * N + k, b + k * N, c + k * N, k, N);
+        matmul(a + k * N,     b + k,         c + k * N + k, k, N);
+        matmul(a + k * N + k, b + k * N + k, c + k * N + k, k, N);
+        if (n & 1) {
+            for (int i = 0; i < n; i++)
+                for (int j = 0; j < n; j++)
+                    for (int k = (i < n - 1 && j < n - 1) ? n - 1 : 0; k < n; k++)
+                        c[i * N + j] += a[i * N + k] * b[k * N + j];
+        }
+    }
+
+}
+
+void cache_oblivious(Matrix &A, Matrix &B, Matrix &C, unsigned int N)
+{
+    matmul(A.data(), B.data(), C.data(), N, N);
+}
+
 
 int main()
 {
-    std::vector lengths = {4, 32, 64, 128, 512, 1024, 2048};
+    std::vector lengths = {4, 32, 64, 128, 256, 512};
     std::map<std::string, voidFunctionType> functions = {
         {"1_vanilla", *vanilla},
         {"2_vanilla_transposition", *vanilla_transposition},
         {"3_cache_optimized_transposition", *cache_optimized_transposition},
+        {"4_cache_oblivious", *cache_oblivious},
     };
     std::map<std::string, std::vector<double>> durations;
     for (auto const& [name, f] : functions) {
