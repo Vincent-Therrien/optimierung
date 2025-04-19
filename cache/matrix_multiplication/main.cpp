@@ -15,7 +15,7 @@
 
 using namespace std::chrono;
 typedef std::vector<float> Matrix;
-typedef void (*voidFunctionType)(Matrix &, Matrix &, Matrix &, unsigned int);
+typedef void (*matrixMultiplication)(Matrix &, Matrix &, Matrix &, unsigned int);
 
 Matrix create_square_matrix(int N)
 {
@@ -47,8 +47,8 @@ void vanilla(Matrix &A, Matrix &B, Matrix &C, unsigned int N)
 // Version 2: With transposition! It actually modifies B in place.
 void transpose(Matrix &M, unsigned int N)
 {
-    for (int i = 0; i < N; ++i) {
-        for (int j = 0; j < N; ++j) {
+    for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int j = 0; j < i; j++) {
             std::swap(M[i * N + j], M[j * N + i]);
         }
     }
@@ -142,11 +142,51 @@ void cache_oblivious(Matrix &A, Matrix &B, Matrix &C, unsigned int N)
     matmul(A.data(), B.data(), C.data(), N, N);
 }
 
+// Validation
+void print(Matrix &M, int N)
+{
+    for (unsigned int i = 0; i < N; i++) {
+        for (unsigned int j = 0; j < N; j++) {
+            std::cout << M[i * N + j] << "\t";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << std::endl;
+}
 
+void compare(matrixMultiplication v, matrixMultiplication u)
+{
+    unsigned int N = 64;
+    auto A1 = create_square_matrix(N);
+    auto B1 = create_square_matrix(N);
+    Matrix C1(N * N);
+    v(A1, B1, C1, N);
+    Matrix A2(A1);
+    Matrix B2(B1);
+    Matrix C2(N * N);
+    u(A2, B2, C2, N);
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            float difference = C1[i * N + j] - C2[i * N + j];
+            if (difference > 0.0001 or difference < -0.0001)
+            {
+                std::cout << "Error: " << i << ", " << j << " : " << difference << std::endl;
+                std::cout << C1[i * N + j] << std::endl;
+                std::cout << C2[i * N + j] << std::endl;
+                exit(1);
+            }
+        }
+    }
+}
+
+// Benchmarking the methods!
 int main()
 {
-    std::vector lengths = {4, 32, 64, 128, 256, 512};
-    std::map<std::string, voidFunctionType> functions = {
+    std::vector lengths = {4, 32, 64, 128, 256, 512, 758, 1024};
+    compare(*vanilla, *vanilla_transposition);
+    compare(*vanilla, *cache_optimized_transposition);
+    compare(*vanilla, *cache_oblivious);
+    std::map<std::string, matrixMultiplication> functions = {
         {"1_vanilla", *vanilla},
         {"2_vanilla_transposition", *vanilla_transposition},
         {"3_cache_optimized_transposition", *cache_optimized_transposition},
@@ -167,13 +207,18 @@ int main()
         }
     }
 
+    std::cout << "N,";
     for (auto const& [name, f] : functions) {
-        std::cout << name << ": " << std::endl;
-        unsigned int i = 0;
-        for (auto &N : lengths) {
-            std::cout << N << ": " << durations[name][i] << " microseconds" << std::endl;
-            i++;
+        std::cout << name << ",";
+    }
+    std::cout << std::endl;
+    unsigned int i = 0;
+    for (auto &N : lengths) {
+        std::cout << N << ",";
+        for (auto const& [name, f] : functions) {
+            std::cout << durations[name][i] << ",";
         }
         std::cout << std::endl;
+        i++;
     }
 }
