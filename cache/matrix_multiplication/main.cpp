@@ -1,9 +1,4 @@
 // Baby's first cache optimization example.
-// Build:
-// >mkdir build
-// >cd build
-// >cmake ..
-// >cmake --build . --config Release
 
 #include <vector>
 #include <random>
@@ -182,7 +177,7 @@ void compare(matrixMultiplication v, matrixMultiplication u)
 // Benchmarking the methods!
 int main()
 {
-    std::vector lengths = {4, 32, 64, 128, 256, 512, 758, 1024};
+    std::vector lengths = {200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000};
     compare(*vanilla, *vanilla_transposition);
     compare(*vanilla, *cache_optimized_transposition);
     compare(*vanilla, *cache_oblivious);

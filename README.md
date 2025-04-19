@@ -7,10 +7,17 @@
 ## A Catalog of Low-Level Optimization Techniques
 
 The programs in this repository showcase low-level optimization techniques that you can use to
-squeeze out as much performance from your CPU as possible.
+squeeze out as much performance from your CPU as possible. This [notebook](visualization.ipynb)
+compares the performance of the techniques and explains them in more detail.
+
+Index:
+
+- **Cache-Based Optimization**:
+  - [Matrix multiplication](cache/matrix_multiplication/readme.md)
 
 
 ## Un catalogue de techniques d'optimisation bas niveau
 
 Les programmes dans ce dépôt répertorient des techniques d'optimization de bas niveau que vous
-pouvez utiliser pour tirer le plus de performance possible d'un processeur.
+pouvez utiliser pour tirer le plus de performance possible d'un processeur. Ce
+[carnet](visualization.ipynb) compare les performances des techniques et les explique en détail.
