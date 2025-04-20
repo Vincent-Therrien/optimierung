@@ -108,28 +108,39 @@ void cache_optimized_transposition(Matrix &A, Matrix &B, Matrix &C, unsigned int
 void matmul(const float *a, const float *b, float *c, int n, int N)
 {
     if (n <= 32) {
-        for (int i = 0; i < n; i++)
-            for (int j = 0; j < n; j++)
-                for (int k = 0; k < n; k++)
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                for (int k = 0; k < n; k++) {
                     c[i * N + j] += a[i * N + k] * b[k * N + j];
-    } else {
-        int k = n / 2;
-        matmul(a,     b,         c, k, N);
-        matmul(a + k, b + k * N, c, k, N);
-        matmul(a,     b + k,         c + k, k, N);
-        matmul(a + k, b + k * N + k, c + k, k, N);
-        matmul(a + k * N,     b,         c + k * N, k, N);
-        matmul(a + k * N + k, b + k * N, c + k * N, k, N);
-        matmul(a + k * N,     b + k,         c + k * N + k, k, N);
-        matmul(a + k * N + k, b + k * N + k, c + k * N + k, k, N);
-        if (n & 1) {
-            for (int i = 0; i < n; i++)
-                for (int j = 0; j < n; j++)
-                    for (int k = (i < n - 1 && j < n - 1) ? n - 1 : 0; k < n; k++)
-                        c[i * N + j] += a[i * N + k] * b[k * N + j];
+                }
+            }
         }
     }
-
+    else {
+        int k = n / 2;
+        // c11
+        matmul(a,     b,         c, k, N);
+        matmul(a + k, b + k * N, c, k, N);
+        // c12
+        matmul(a,     b + k,         c + k, k, N);
+        matmul(a + k, b + k * N + k, c + k, k, N);
+        // c21
+        matmul(a + k * N,     b,         c + k * N, k, N);
+        matmul(a + k * N + k, b + k * N, c + k * N, k, N);
+        // c22
+        matmul(a + k * N,     b + k,         c + k * N + k, k, N);
+        matmul(a + k * N + k, b + k * N + k, c + k * N + k, k, N);
+        // Handle odd matrix dimensions.
+        if (n & 1) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    for (int k = (i < n - 1 && j < n - 1) ? n - 1 : 0; k < n; k++) {
+                        c[i * N + j] += a[i * N + k] * b[k * N + j];
+                    }
+                }
+            }
+        }
+    }
 }
 
 void cache_oblivious(Matrix &A, Matrix &B, Matrix &C, unsigned int N)
@@ -178,9 +189,11 @@ void compare(matrixMultiplication v, matrixMultiplication u)
 int main()
 {
     std::vector lengths = {200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000};
+    // Ensure that the functions yield in the same results.
     compare(*vanilla, *vanilla_transposition);
     compare(*vanilla, *cache_optimized_transposition);
     compare(*vanilla, *cache_oblivious);
+    // Benchmark the algorithms!
     std::map<std::string, matrixMultiplication> functions = {
         {"1_vanilla", *vanilla},
         {"2_vanilla_transposition", *vanilla_transposition},
@@ -201,7 +214,7 @@ int main()
             durations[name].push_back(duration.count());
         }
     }
-
+    // Print results to stdout with a CSV-style output.
     std::cout << "N,";
     for (auto const& [name, f] : functions) {
         std::cout << name << ",";
