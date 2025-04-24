@@ -75,7 +75,7 @@ void parallel_sum(
 
 int main()
 {
-    std::vector<unsigned int> cache_line_sizes = {1, 2, 4, 8, 16, 32, 64, 128, 256, 512};
+    std::vector<unsigned int> cache_line_sizes = {1, 2, 4, 8, 16, 32, 64, 128};
     unsigned int N = 10000;
     unsigned int T = 16;
     std::map<unsigned int, double> durations;
@@ -89,7 +89,7 @@ int main()
         durations[cache_line_size] = duration.count();
     }
     // Print results to stdout with a CSV-style output.
-    std::cout << "Offset,Duration" << std::endl;
+    std::cout << "Offset,Duration," << std::endl;
     for (auto const& [cache_line_size, duration] : durations) {
         std::cout << cache_line_size << "," << duration << std::endl;
     }
