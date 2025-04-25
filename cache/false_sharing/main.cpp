@@ -18,7 +18,7 @@ std::vector<float> create_array(unsigned int N)
     std::uniform_real_distribution<float> dist(-1.0f, 1.0f);
     std::vector<float> v(N);
     for (unsigned int i = 0; i < N; i++) {
-        N = dist(gen);
+        v[i] = dist(gen);
     }
     return v;
 }

@@ -48,3 +48,8 @@ def decompose_results(output: str) -> dict:
     for column in columns[1:]:
         values[column[0]] = column[1:]
     return N, values
+
+
+def read_lines(output: str) -> list:
+    lines = output.splitlines()
+    return [l.decode("utf-8").split(",") for l in lines]
